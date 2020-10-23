@@ -1,1 +1,1 @@
-Hello, World! From Docker!
+Hello, World! Version 2
