@@ -18,7 +18,7 @@ stages{
             post {
                 success {
                     echo 'Now Archiving...'
-                    archiveArtifacts artifacts: '**/*.war'
+                    archiveArtifacts artifacts: '**/target/*.war'
                 }
             }
         }
@@ -27,13 +27,13 @@ stages{
             parallel{
                 stage ('Deploy to Staging'){
                     steps {
-                        sh "cp **/*.war /home/daniel/{params.tomcat_dev}/webapps"
+                        sh "cp **/target/*.war /home/daniel/{params.tomcat_dev}/webapps"
                     }
                 }
 
                 stage ("Deploy to Production"){
                     steps {
-                        sh "cp **/*.war /home/daniel/{params.tomcat_prod}/webapps"
+                        sh "cp **/target/*.war /home/daniel/{params.tomcat_prod}/webapps"
                     }
                 }
             }
