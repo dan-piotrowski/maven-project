@@ -1,6 +1,16 @@
 pipeline {
     agent any
-    stages{
+
+    parameters {
+         string(name: 'tomcat_dev', defaultValue: 'apache-tomcat-8.0.27', description: 'Staging Server')
+         string(name: 'tomcat_prod', defaultValue: 'apache-tomcat-8.0.27_prod', description: 'Production Server')
+    }
+
+    triggers {
+         pollSCM('* * * * *')
+     }
+
+stages{
         stage('Build'){
             steps {
                 sh 'mvn clean package'
@@ -8,35 +18,25 @@ pipeline {
             post {
                 success {
                     echo 'Now Archiving...'
-                    archiveArtifacts artifacts: '**/target/*.war'
-                }
-            }
-        }
-        stage ('Deploy to Staging'){
-            steps {
-                build job: 'deploy-to-staging'
-            }
-        }
-
-        stage ('Deploy to Production'){
-            steps{
-                timeout(time:5, unit:'DAYS'){
-                    input message:'Approve PRODUCTION Deployment?'
-                }
-
-                build job: 'deploy-to-prod'
-            }
-            post {
-                success {
-                    echo 'Code deployed to Production.'
-                }
-
-                failure {
-                    echo ' Deployment failed.'
+                    archiveArtifacts artifacts: '**/*.war'
                 }
             }
         }
 
+        stage ('Deployments'){
+            parallel{
+                stage ('Deploy to Staging'){
+                    steps {
+                        sh "cp **/*.war /home/daniel/{params.tomcat_dev}/webapps"
+                    }
+                }
 
+                stage ("Deploy to Production"){
+                    steps {
+                        sh "cp **/*.war /home/daniel/{params.tomcat_prod}/webapps"
+                    }
+                }
+            }
+        }
     }
 }
